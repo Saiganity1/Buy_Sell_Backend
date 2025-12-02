@@ -6,7 +6,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-secret-key-change-me')
 DEBUG = os.environ.get('DEBUG', '1') == '1'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*', "https://buy-sell-backend.onrender.com/admin", "https://buy-sell-backend.onrender.com").split(',')
+
+# ALLOWED_HOSTS parsing: accept comma-separated env var; fall back to * in dev.
+allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '')
+if allowed_hosts_env.strip():
+    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
+else:
+    ALLOWED_HOSTS = ['*']
+
+# Render provides the external hostname in env; add it for safety.
+render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if render_host:
+    ALLOWED_HOSTS = list({*ALLOWED_HOSTS, render_host})
+
+# CSRF trusted origins: include Render hostname and known production domain(s)
+_default_csrf = ['https://buy-sell-backend.onrender.com']
+csrf_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+_csrf_list = [o.strip() for o in csrf_env.split(',') if o.strip()]
+if render_host:
+    _csrf_list.append(f'https://{render_host}')
+CSRF_TRUSTED_ORIGINS = list({*(_default_csrf + _csrf_list)})
 
 INSTALLED_APPS = [
     'daphne',
