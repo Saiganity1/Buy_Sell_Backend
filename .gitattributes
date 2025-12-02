@@ -1,0 +1,19 @@
+# Keep language stats to: Python, HTML, JavaScript, CSS
+
+# Exclude Jinja templates (if any) from detection
+*.jinja linguist-detectable=false
+*.jinja2 linguist-detectable=false
+*.j2 linguist-detectable=false
+
+# Exclude any stray C headers/sources (none expected in Django project)
+*.c linguist-detectable=false
+*.h linguist-detectable=false
+
+# Ignore non-source/binary and environment artifacts
+db.sqlite3 linguist-generated
+.env linguist-vendored
+.venv/** linguist-vendored
+venv/** linguist-vendored
+
+# If you add third-party static libraries, put them under static/vendor and keep them out of stats
+static/vendor/** linguist-vendored
