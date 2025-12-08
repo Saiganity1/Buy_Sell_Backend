@@ -103,6 +103,13 @@ STATIC_ROOT = BASE_DIR / 'static'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# In production (DEBUG=False) serve media from the collected static directory so
+# WhiteNoise can serve newly uploaded files as well. This sets MEDIA_ROOT to
+# STATIC_ROOT/media when running on a PaaS where the filesystem is ephemeral.
+if not DEBUG:
+    MEDIA_URL = '/static/media/'
+    MEDIA_ROOT = STATIC_ROOT / 'media'
+
 # Store static files compressed in production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 

@@ -40,5 +40,9 @@ fi
 
 python manage.py collectstatic --noinput
 
+# Ensure static/media exists and is writable (for serving uploads in production)
+mkdir -p static/media
+chmod -R 755 static/media || true
+
 echo "Starting ASGI server..."
 exec daphne -b 0.0.0.0 -p 10000 config.asgi:application
