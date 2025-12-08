@@ -255,8 +255,9 @@ class MessageSerializer(serializers.ModelSerializer):
     sender = UserPublicSerializer(read_only=True)
     recipient = UserPublicSerializer(read_only=True)
     recipient_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True, source='recipient')
+    is_read = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Message
-        fields = ['id', 'sender', 'recipient', 'recipient_id', 'product', 'content', 'created_at']
+        fields = ['id', 'sender', 'recipient', 'recipient_id', 'product', 'content', 'is_read', 'created_at']
         read_only_fields = ['id', 'created_at', 'sender', 'recipient']

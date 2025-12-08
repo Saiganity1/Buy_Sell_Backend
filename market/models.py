@@ -22,6 +22,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     image_url = models.URLField(blank=True)
     image = models.ImageField(upload_to='products/', null=True, blank=True)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     available = models.BooleanField(default=True)
     # Inventory
@@ -30,6 +31,12 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.price}"
+    
+    def delete(self, using=None, keep_parents=False):
+        """Soft-delete: mark archived instead of removing from DB."""
+        self.archived = True
+        self.available = False
+        self.save(update_fields=['archived', 'available'])
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -82,6 +89,7 @@ class Message(models.Model):
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_messages')
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='messages')
     content = models.TextField()
+    is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

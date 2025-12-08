@@ -14,9 +14,21 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'price', 'seller', 'available', 'created_at')
-    list_filter = ('available',)
+    list_display = ('id', 'title', 'price', 'seller', 'available', 'archived', 'created_at')
+    list_filter = ('available','archived')
     search_fields = ('title', 'seller__username')
+    
+    def get_actions(self, request):
+        actions = super().get_actions(request) or {}
+        # Remove the default bulk delete action to prevent permanent removals
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+    
+    @admin.action(description='Restore selected products')
+    def restore_selected(self, request, queryset):
+        queryset.update(archived=False, available=True)
+        self.message_user(request, f"Restored {queryset.count()} products.")
 
 
 @admin.register(CartItem)

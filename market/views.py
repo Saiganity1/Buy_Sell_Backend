@@ -43,9 +43,40 @@ class AdminUserViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.filter(available=True).select_related('seller').order_by('-created_at')
+    queryset = Product.objects.filter(available=True, archived=False).select_related('seller').order_by('-created_at')
     serializer_class = ProductSerializer
     parser_classes = (MultiPartParser, FormParser, JSONParser)
+
+    def destroy(self, request, *args, **kwargs):
+        # Soft-delete (archive) products instead of permanently deleting
+        instance = self.get_object()
+        instance.archived = True
+        instance.available = False
+        instance.save(update_fields=['archived', 'available'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAdmin])
+    def restore(self, request, pk=None):
+        """Admin-only: restore an archived product back to available state."""
+        try:
+            obj = self.get_object()
+            obj.archived = False
+            obj.available = True
+            obj.save(update_fields=['archived', 'available'])
+            return Response(self.get_serializer(obj).data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAdmin])
+    def archived(self, request):
+        """Admin-only: list archived products."""
+        qs = Product.objects.filter(archived=True).order_by('-created_at')
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(qs, many=True, context={'request': request})
+        return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):
         qs = self.get_queryset()
