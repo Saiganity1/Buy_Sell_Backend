@@ -29,6 +29,14 @@ else
 fi
 
 echo "Collecting static files..."
+# Ensure any existing media files checked into the repo are available under static/
+# so WhiteNoise can serve them on platforms like Render where media uploads are ephemeral.
+if [ -d "media" ]; then
+  mkdir -p static/media
+  # copy media contents into static/media (ignore errors if empty)
+  cp -R media/* static/media/ || true
+fi
+
 python manage.py collectstatic --noinput
 
 echo "Starting ASGI server..."

@@ -48,6 +48,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    # WhiteNoise middleware to serve static files in production
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -100,6 +102,15 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'static'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Store static files compressed in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+# On many PaaS providers (Render), uploads are not persisted across deploys.
+# To make media reachable from the site when deployed, in non-debug mode
+# expose media under the static files path (we copy media into static/ at build).
+if not DEBUG:
+    MEDIA_URL = '/static/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
