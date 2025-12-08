@@ -8,5 +8,6 @@ channels==4.1.0
 daphne==4.1.2
 whitenoise==6.5.0
 dj-database-url==1.0.0
-django-storages[boto3]==1.18.1
+django-storages[boto3]
+# Keep boto3 pinned to a recent release; pip will resolve a compatible version if needed.
 boto3==1.28.76
