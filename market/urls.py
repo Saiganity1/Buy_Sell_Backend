@@ -14,6 +14,7 @@ from .views import (
     LogoutView,
     LogoutAllView,
     media_list_view,
+    media_probe_view,
 )
 
 router = DefaultRouter()
