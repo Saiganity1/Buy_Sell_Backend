@@ -226,6 +226,36 @@ def media_list_view(request):
     return JsonResponse({'files': out})
 
 
+def media_probe_view(request):
+    """Lightweight debug endpoint: check if a specific media path exists under MEDIA_ROOT.
+    Query param: name (e.g. 'products/abcd.jpg'). Returns JSON {exists: bool, path: str, url: str}
+    This endpoint is intentionally permissive for debugging; remove it in production.
+    """
+    name = request.GET.get('name') or request.GET.get('path')
+    if not name:
+        return JsonResponse({'detail': 'name query parameter required'}, status=400)
+    # sanitize: prevent absolute paths and traversal
+    if name.startswith('/') or '..' in name:
+        return JsonResponse({'detail': 'invalid name'}, status=400)
+    root = getattr(settings, 'MEDIA_ROOT', None)
+    if not root:
+        return JsonResponse({'exists': False, 'path': None, 'url': None})
+    full = os.path.join(root, name)
+    exists = os.path.exists(full)
+    # build a URL that would be used to serve this resource
+    url = None
+    try:
+        # Use MEDIA_URL (may be /static/media/ in production)
+        media_url = getattr(settings, 'MEDIA_URL', '/media/')
+        # Ensure leading slash
+        if not media_url.startswith('/'):
+            media_url = '/' + media_url
+        url = request.build_absolute_uri(os.path.join(media_url, name))
+    except Exception:
+        url = None
+    return JsonResponse({'exists': bool(exists), 'path': full, 'url': url})
+
+
 class SimpleTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         # Allow login with either username or email (case-insensitive for email)

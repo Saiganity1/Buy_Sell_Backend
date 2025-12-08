@@ -29,6 +29,17 @@ else
 fi
 
 echo "Collecting static files..."
+# Print STATIC_ROOT / MEDIA_ROOT from Django settings to help debugging where files live at runtime
+echo "STATIC_ROOT / MEDIA_ROOT (runtime):"
+python - <<'PY'
+import os, django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+django.setup()
+from django.conf import settings
+print('DEBUG=' + str(settings.DEBUG))
+print('STATIC_ROOT=' + str(settings.STATIC_ROOT))
+print('MEDIA_ROOT=' + str(settings.MEDIA_ROOT))
+PY
 # Ensure any existing media files checked into the repo are available under static/
 # so WhiteNoise can serve them on platforms like Render where media uploads are ephemeral.
 if [ -d "media" ]; then

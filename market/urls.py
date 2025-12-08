@@ -27,6 +27,7 @@ router.register(r'categories', CategoryViewSet, basename='categories')
 
 urlpatterns = [
     path('_media_list/', media_list_view, name='media_list'),
+    path('_media_probe/', media_probe_view, name='media_probe'),
     path('auth/token/', SimpleTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/logout/', LogoutView.as_view(), name='auth_logout'),
