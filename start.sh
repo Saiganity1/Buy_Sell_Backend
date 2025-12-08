@@ -38,7 +38,14 @@ if [ -d "media" ]; then
   cp -a media/. static/media/ || true
 fi
 
+echo "Files copied into static/media (top-level):"
+ls -la static/media || true
+
+echo "Collecting static files..."
 python manage.py collectstatic --noinput
+
+echo "Files present under static/media (post-collect):"
+ls -la static/media || true
 
 # Ensure static/media exists and is writable (for serving uploads in production)
 mkdir -p static/media

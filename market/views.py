@@ -17,6 +17,9 @@ from .serializers import (
     UserSerializer, AdminCreateUserSerializer, UserPublicSerializer,
     ProductSerializer, CartItemSerializer, OrderSerializer, MessageSerializer, CategorySerializer
 )
+from django.conf import settings
+from django.http import JsonResponse
+import os
 from .permissions import IsAdmin, IsOwnerOrAdmin
 
 User = get_user_model()
@@ -207,6 +210,20 @@ class CategoryViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return [AllowAny()]
         return [IsAdmin()]
+
+
+def media_list_view(request):
+    """Temporary debug view: list files under MEDIA_ROOT (only for staff users)."""
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse({'detail': 'unauthorized'}, status=401)
+    root = getattr(settings, 'MEDIA_ROOT', None)
+    if not root:
+        return JsonResponse({'files': []})
+    out = {}
+    for dirpath, dirnames, filenames in os.walk(root):
+        rel = os.path.relpath(dirpath, root)
+        out[rel] = filenames
+    return JsonResponse({'files': out})
 
 
 class SimpleTokenObtainPairSerializer(TokenObtainPairSerializer):
