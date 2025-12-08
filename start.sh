@@ -43,10 +43,15 @@ PY
 # Ensure any existing media files checked into the repo are available under static/
 # so WhiteNoise can serve them on platforms like Render where media uploads are ephemeral.
 if [ -d "media" ]; then
-  mkdir -p static/media
-  # copy media contents into static/media (ignore errors if empty)
-  # Use a safer copy form that works whether media contains files or directories
-  cp -a media/. static/media/ || true
+  # If using S3/object storage for media, skip copying local media into static/
+  if [ -n "${AWS_STORAGE_BUCKET_NAME:-}" ] || [ -n "${S3_BUCKET_NAME:-}" ]; then
+    echo "S3 bucket configured (AWS_STORAGE_BUCKET_NAME or S3_BUCKET_NAME set). Skipping copying local media into static/"
+  else
+    mkdir -p static/media
+    # copy media contents into static/media (ignore errors if empty)
+    # Use a safer copy form that works whether media contains files or directories
+    cp -a media/. static/media/ || true
+  fi
 fi
 
 echo "Files copied into static/media (top-level):"

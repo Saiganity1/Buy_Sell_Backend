@@ -118,6 +118,34 @@ if not DEBUG:
     MEDIA_URL = '/static/media/'
     MEDIA_ROOT = STATIC_ROOT / 'media'
 
+# Optional S3 / object-storage configuration
+# If you provide AWS_STORAGE_BUCKET_NAME (or S3_BUCKET_NAME) and credentials
+# the app will use django-storages to keep uploaded media on S3 (or S3-compatible)
+# object storage. This prevents data loss when the host filesystem is ephemeral
+# (Render, Heroku, etc.). Set the following env vars in Render:
+# - AWS_STORAGE_BUCKET_NAME (or S3_BUCKET_NAME)
+# - AWS_ACCESS_KEY_ID
+# - AWS_SECRET_ACCESS_KEY
+# - AWS_S3_REGION_NAME (optional)
+# - AWS_S3_ENDPOINT_URL (optional, for S3-compatible endpoints)
+
+S3_BUCKET = os.environ.get('AWS_STORAGE_BUCKET_NAME') or os.environ.get('S3_BUCKET_NAME')
+if S3_BUCKET:
+    AWS_STORAGE_BUCKET_NAME = S3_BUCKET
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME') or os.environ.get('AWS_REGION')
+    AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL')
+
+    # Use django-storages' S3 backend for uploaded files
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+    # When using S3 we keep WhiteNoise for serving static files that are
+    # collected at build (CSS/JS). If you also want to serve static files
+    # from S3, uncomment and configure STATICFILES_STORAGE below.
+    # STATICFILES_STORAGE = 'storages.backends.s3boto3.S3StaticStorage'
+
+
 # Store static files compressed in production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
