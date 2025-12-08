@@ -34,7 +34,8 @@ echo "Collecting static files..."
 if [ -d "media" ]; then
   mkdir -p static/media
   # copy media contents into static/media (ignore errors if empty)
-  cp -R media/* static/media/ || true
+  # Use a safer copy form that works whether media contains files or directories
+  cp -a media/. static/media/ || true
 fi
 
 python manage.py collectstatic --noinput
