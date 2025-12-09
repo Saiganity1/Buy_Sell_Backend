@@ -46,6 +46,10 @@ INSTALLED_APPS = [
     'market',
 ]
 
+# If S3 is used for media, include django-storages
+if os.environ.get('AWS_STORAGE_BUCKET_NAME') or os.environ.get('S3_BUCKET_NAME'):
+    INSTALLED_APPS.append('storages')
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -139,6 +143,8 @@ if S3_BUCKET:
 
     # Use django-storages' S3 backend for uploaded files
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    # Set MEDIA_URL to S3 bucket root
+    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
 
     # When using S3 we keep WhiteNoise for serving static files that are
     # collected at build (CSS/JS). If you also want to serve static files
