@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 
@@ -23,6 +24,7 @@ class Product(models.Model):
     image_url = models.URLField(blank=True)
     image = models.ImageField(upload_to='products/', null=True, blank=True)
     archived = models.BooleanField(default=False)
+    archived_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     available = models.BooleanField(default=True)
     # Inventory
@@ -34,9 +36,10 @@ class Product(models.Model):
     
     def delete(self, using=None, keep_parents=False):
         """Soft-delete: mark archived instead of removing from DB."""
-        self.archived = True
-        self.available = False
-        self.save(update_fields=['archived', 'available'])
+    self.archived = True
+    self.available = False
+    self.archived_at = timezone.now()
+    self.save(update_fields=['archived', 'available', 'archived_at'])
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)

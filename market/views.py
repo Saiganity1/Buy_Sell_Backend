@@ -11,6 +11,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from django.db.models import Q
+from django.utils import timezone
 
 from .models import Product, CartItem, Order, OrderItem, Message, Category, ProductVariant
 from .serializers import (
@@ -52,7 +53,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         instance.archived = True
         instance.available = False
-        instance.save(update_fields=['archived', 'available'])
+        instance.archived_at = timezone.now()
+        instance.save(update_fields=['archived', 'available', 'archived_at'])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'], permission_classes=[IsOwnerOrAdmin])
@@ -61,7 +63,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         obj = self.get_object()
         obj.archived = True
         obj.available = False
-        obj.save(update_fields=['archived', 'available'])
+        obj.archived_at = timezone.now()
+        obj.save(update_fields=['archived', 'available', 'archived_at'])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'], permission_classes=[IsOwnerOrAdmin])
@@ -71,7 +74,8 @@ class ProductViewSet(viewsets.ModelViewSet):
             obj = self.get_object()
             obj.archived = False
             obj.available = True
-            obj.save(update_fields=['archived', 'available'])
+            obj.archived_at = None
+            obj.save(update_fields=['archived', 'available', 'archived_at'])
             return Response(self.get_serializer(obj).data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
