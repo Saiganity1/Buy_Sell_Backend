@@ -14,7 +14,7 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'price', 'seller', 'available', 'archived', 'created_at')
+    list_display = ('id', 'title', 'price', 'seller', 'available', 'archived', 'archived_at', 'created_at')
     list_filter = ('available','archived')
     search_fields = ('title', 'seller__username')
     

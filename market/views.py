@@ -44,7 +44,7 @@ class AdminUserViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.filter(available=True, archived=False).select_related('seller').order_by('-created_at')
+    queryset = Product.objects.filter(available=True, archived=False).select_related('seller').prefetch_related('variants').order_by('-created_at')
     serializer_class = ProductSerializer
     parser_classes = (MultiPartParser, FormParser, JSONParser)
 
