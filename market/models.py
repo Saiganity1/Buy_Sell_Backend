@@ -35,11 +35,17 @@ class Product(models.Model):
         return f"{self.title} - {self.price}"
     
     def delete(self, using=None, keep_parents=False):
-        """Soft-delete: mark archived instead of removing from DB."""
-    self.archived = True
-    self.available = False
-    self.archived_at = timezone.now()
-    self.save(update_fields=['archived', 'available', 'archived_at'])
+        """Soft-delete: mark archived instead of removing from DB.
+
+        We override Django's default delete to perform a soft-delete so the
+        object remains in the database. This method marks the product as
+        archived, clears availability, sets `archived_at` and saves those
+        fields only.
+        """
+        self.archived = True
+        self.available = False
+        self.archived_at = timezone.now()
+        self.save(update_fields=['archived', 'available', 'archived_at'])
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
