@@ -55,9 +55,18 @@ class ProductViewSet(viewsets.ModelViewSet):
         instance.save(update_fields=['archived', 'available'])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAdmin])
+    @action(detail=True, methods=['post'], permission_classes=[IsOwnerOrAdmin])
+    def archive(self, request, pk=None):
+        """Owner or admin: archive (soft-delete) a product."""
+        obj = self.get_object()
+        obj.archived = True
+        obj.available = False
+        obj.save(update_fields=['archived', 'available'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsOwnerOrAdmin])
     def restore(self, request, pk=None):
-        """Admin-only: restore an archived product back to available state."""
+        """Owner or admin: restore an archived product back to available state."""
         try:
             obj = self.get_object()
             obj.archived = False
@@ -111,6 +120,19 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        # Allow owners or admins to include archived products in the listing using ?include_archived=true
+        include_archived = str(self.request.query_params.get('include_archived') or '').lower() in ('1', 'true', 'yes')
+        # If include_archived requested, only allow if user is admin; owners can include their own archived products via seller_id filter
+        if include_archived:
+            if getattr(self.request.user, 'is_staff', False) or getattr(self.request.user, 'role', '') == 'ADMIN':
+                qs = Product.objects.all().select_related('seller').order_by('-created_at')
+            else:
+                seller_id = self.request.query_params.get('seller_id')
+                if seller_id and str(seller_id) == str(getattr(self.request.user, 'id', '')):
+                    qs = Product.objects.filter(seller_id=seller_id).select_related('seller').order_by('-created_at')
+                else:
+                    # not allowed to see other sellers' archived items
+                    qs = qs.filter(archived=False)
         seller_id = self.request.query_params.get('seller_id')
         if seller_id:
             qs = qs.filter(seller_id=seller_id)
